@@ -89,25 +89,17 @@
     // Load React and dependencies
     loadScript("https://unpkg.com/react@18/umd/react.production.min.js", function () {
       loadScript("https://unpkg.com/react-dom@18/umd/react-dom.production.min.js", function () {
-        // Load widget bundle directly (no external dependencies)
-        loadScript(CONFIG.scriptUrl + "widget.js", function () {
-          console.log("S5.AI Chat Widget: Widget bundle loaded successfully")
-          console.log("S5.AI Chat Widget: window.S5ChatWidget =", window.S5ChatWidget)
-          console.log("S5.AI Chat Widget: typeof window.S5ChatWidget =", typeof window.S5ChatWidget)
-
-          // Initialize the widget - webpack exports the init function directly
-          if (typeof window.S5ChatWidget === "function") {
-            console.log("S5.AI Chat Widget: Calling window.S5ChatWidget with options:", options)
-            window.S5ChatWidget(container, options)
-            console.log("S5.AI Chat Widget: Initialization completed")
-          } else {
-            console.error("S5.AI Chat Widget failed to load properly - not a function")
-            console.log("window.S5ChatWidget:", window.S5ChatWidget)
-            console.log(
-              "Available window properties:",
-              Object.keys(window).filter((key) => key.includes("S5"))
-            )
-          }
+        // Load Lucide icons
+        loadScript("https://unpkg.com/lucide@0.451.0/dist/umd/lucide.js", function () {
+          // Load widget bundle (this will be generated during build)
+          loadScript(CONFIG.scriptUrl + "widget.js", function () {
+            // Initialize the widget
+            if (window.S5ChatWidget && window.S5ChatWidget.init) {
+              window.S5ChatWidget.init(container, options)
+            } else {
+              console.error("S5.AI Chat Widget failed to load properly")
+            }
+          })
         })
       })
     })

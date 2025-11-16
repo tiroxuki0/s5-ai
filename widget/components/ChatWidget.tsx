@@ -77,6 +77,8 @@ export function ChatWidget({ apiUrl = "/api/widget/chat", apiKey, theme = "auto"
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [currentImages, setCurrentImages] = useState<any[]>([])
+  const [currentSources, setCurrentSources] = useState<any[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -143,6 +145,13 @@ export function ChatWidget({ apiUrl = "/api/widget/chat", apiKey, theme = "auto"
           .map((part: any) => part.text)
           .join("")
       }
+
+      // Extract images and sources from response
+      const images = data.imageResults || []
+      const sources = data.sources || []
+
+      setCurrentImages(images)
+      setCurrentSources(sources)
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -234,6 +243,25 @@ export function ChatWidget({ apiUrl = "/api/widget/chat", apiKey, theme = "auto"
                 <div className={`s5-widget-message-bubble ${message.role === "user" ? "s5-widget-message-bubble-user" : "s5-widget-message-bubble-assistant"}`}>{message.content}</div>
               </div>
             ))}
+
+            {/* Display images if available */}
+            {currentImages.length > 0 && (
+              <div className="s5-widget-images">
+                {currentImages.map((image, index) => (
+                  <div key={index} className="s5-widget-image-item">
+                    <img
+                      src={image.url}
+                      alt={image.title || `Image ${index + 1}`}
+                      className="s5-widget-image"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none"
+                      }}
+                    />
+                    {image.title && <div className="s5-widget-image-title">{image.title}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {isLoading && (
               <div className="s5-widget-message s5-widget-message-assistant">

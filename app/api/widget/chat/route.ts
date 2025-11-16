@@ -20,7 +20,47 @@ export async function POST(request: NextRequest) {
       })
     })
 
-    const data = await response.json()
+    // Handle streaming response from s5/search API
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    let aiResponse = ""
+    let sources: any[] = []
+    let followUpQuestions: string[] = []
+
+    if (reader) {
+      let buffer = ""
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || "" // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.type === "data-ai-response" && data.data?.content) {
+                aiResponse = data.data.content
+              } else if (data.type === "data-sources" && data.data?.sources) {
+                sources = data.data.sources
+              } else if (data.type === "data-followup" && data.data?.questions) {
+                followUpQuestions = data.data.questions
+              }
+            } catch (e) {
+              // Ignore parse errors for now
+            }
+          }
+        }
+      }
+    }
+
+    const data = {
+      content: aiResponse,
+      sources,
+      followUpQuestions
+    }
 
     // Return with CORS headers
     return NextResponse.json(data, {
