@@ -52,6 +52,8 @@ export default initWidget
 // Also expose it globally for the embed script
 if (typeof window !== "undefined") {
   console.log("S5.AI Chat Widget: Setting window.S5ChatWidget =", initWidget)
-  window.S5ChatWidget = initWidget
+  window.S5ChatWidget = {
+    init: initWidget
+  }
   console.log("S5.AI Chat Widget: window.S5ChatWidget is now set to", window.S5ChatWidget)
 }
