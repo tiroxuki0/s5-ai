@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S5.AI Chat Widget Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 3rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .demo-content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+    }
+
+    .demo-section {
+      margin-bottom: 30px;
+    }
+
+    .demo-section h2 {
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .demo-section p {
+      margin-bottom: 15px;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+    }
+
+    .highlight {
+      background: rgba(255, 77, 0, 0.2);
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    .note {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .note strong {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🚀 S5.AI Chat Widget Demo</h1>
+
+    <div class="demo-content">
+      <div class="demo-section">
+        <h2>✨ What is this?</h2>
+        <p>
+          This is a demo page showing how the S5.AI Chat Widget works. The widget is embedded on this page
+          and appears as a floating chat button in the bottom-right corner.
+        </p>
+        <p>
+          Click the orange chat button to open the AI assistant and start chatting!
+        </p>
+      </div>
+
+      <div class="demo-section">
+        <h2>🔧 How to Embed</h2>
+        <p>
+          To add this widget to your website, simply include this script tag in your HTML:
+        </p>
+
+        <div class="code-block">
+          &lt;script<br>
+          &nbsp;&nbsp;src="https://your-domain.com/embed.js"<br>
+          &nbsp;&nbsp;data-api-url="https://your-domain.com/api/widget/chat"<br>
+          &nbsp;&nbsp;data-theme="auto"<br>
+          &nbsp;&nbsp;data-position="bottom-right"<br>
+          &nbsp;&nbsp;data-primary-color="#ff4d00"&gt;<br>
+          &lt;/script&gt;
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>🎨 Customization Options</h2>
+
+        <h3>Theme</h3>
+        <div class="code-block">
+          data-theme="auto" <span class="highlight">// Follows system preference</span><br>
+          data-theme="light" <span class="highlight">// Always light mode</span><br>
+          data-theme="dark" <span class="highlight">// Always dark mode</span>
+        </div>
+
+        <h3>Position</h3>
+        <div class="code-block">
+          data-position="bottom-right" <span class="highlight">// Default</span><br>
+          data-position="bottom-left" <span class="highlight">// Alternative</span>
+        </div>
+
+        <h3>Colors</h3>
+        <div class="code-block">
+          data-primary-color="#ff4d00" <span class="highlight">// Orange (default)</span><br>
+          data-primary-color="#3b82f6" <span class="highlight">// Blue</span><br>
+          data-primary-color="#10b981" <span class="highlight">// Green</span>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>💡 Note:</strong> Make sure to replace <code>https://your-domain.com</code> with your actual domain
+        where the widget files are hosted.
+      </div>
+
+      <div class="demo-section">
+        <h2>📱 Features</h2>
+        <ul>
+          <li>🚀 <strong>Fast loading</strong> - Optimized bundle size</li>
+          <li>🎯 <strong>Non-intrusive</strong> - Only appears when needed</li>
+          <li>📱 <strong>Responsive</strong> - Works on all devices</li>
+          <li>🌙 <strong>Theme aware</strong> - Adapts to your site's theme</li>
+          <li>🔒 <strong>Secure</strong> - CORS-protected API calls</li>
+          <li>⚡ <strong>Real-time</strong> - Streaming AI responses</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5.AI Chat Widget -->
+  <script src="/embed.js" data-api-url="http://localhost:3002/api/widget/chat" data-theme="auto"
+    data-position="bottom-right" data-primary-color="#ff4d00">
+    </script>
+</body>
+
+</html>
