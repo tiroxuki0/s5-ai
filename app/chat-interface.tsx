@@ -51,7 +51,6 @@ interface ChatInterfaceProps {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   messageData?: Map<number, MessageData>
   currentTicker?: string | null
-  currentAiResponse?: string
 }
 
 export function ChatInterface({
@@ -67,14 +66,13 @@ export function ChatInterface({
   handleSubmit,
   messageData,
   currentTicker,
-  currentAiResponse
 }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   // Simple theme detection based on document class
   const theme = typeof window !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light"
-
+  console.log('messages',messages)
   // Extract the current query and check if we're waiting for response
   let query = ""
   let isWaitingForResponse = false
@@ -488,7 +486,7 @@ export function ChatInterface({
                   {!isLoading && (
                     <div className="flex items-center gap-1 opacity-0 animate-fade-in [animation-duration:300ms] [animation-delay:200ms] [animation-fill-mode:forwards]">
                       <button
-                        onClick={() => handleCopy(currentAiResponse || getMessageContent(messages[messages.length - 1]), "current-message")}
+                        onClick={() => handleCopy(getMessageContent(messages[messages.length - 1]), "current-message")}
                         className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
                         title={copiedMessageId === "current-message" ? "Copied!" : "Copy response"}
                       >
@@ -506,7 +504,7 @@ export function ChatInterface({
                 </div>
                 <div>
                   <div className="prose prose-gray max-w-none dark:prose-invert prose-sm sm:prose-base prose-p:leading-relaxed prose-pre:bg-gray-100 dark:prose-pre:bg-zinc-900 break-words overflow-hidden">
-                    <MarkdownRenderer content={currentAiResponse || getMessageContent(messages[messages.length - 1])} sources={sources} />
+                    <MarkdownRenderer content={getMessageContent(messages[messages.length - 1])} sources={sources} />
                   </div>
                 </div>
               </div>

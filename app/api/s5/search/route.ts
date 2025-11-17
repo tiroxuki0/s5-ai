@@ -3,8 +3,7 @@ import { createGroq } from "@ai-sdk/groq"
 import { streamText, generateText, createUIMessageStream, createUIMessageStreamResponse, convertToModelMessages } from "ai"
 import type { ModelMessage } from "ai"
 import { detectCompanyTicker } from "@/lib/company-ticker-map"
-import { selectRelevantContent } from "@/lib/content-selection"
-import { Redis } from "@upstash/redis"
+import { Redis } from "@upstash/redis"  
 import { hybridSearchService } from "@/lib/services/hybrid-search"
 
 // Initialize Redis (optional - fallback to no cache if not configured)
@@ -96,7 +95,6 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
     messages = body?.messages || []
-
   } catch (parseError) {
     console.error("Error parsing request body:", parseError)
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
@@ -208,7 +206,7 @@ export async function POST(request: Request) {
     // Use API key from request body if provided, otherwise fall back to environment variable
     const braveApiKey = body.braveApiKey || process.env.BRAVE_API_KEY
     const groqApiKey = process.env.GROQ_API_KEY
-    const groqModel = process.env.GROQ_MODEL || "openai/gpt-oss-120b" // Better rate limits than kimi-k2
+    const groqModel = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
 
     if (!braveApiKey) {
       return NextResponse.json({ error: "Brave Search API key not configured" }, { status: 500 })
@@ -225,12 +223,7 @@ export async function POST(request: Request) {
 
     // Helper function to get model with fallback for rate limits
     const getModelWithFallback = (primaryModel: string) => {
-      const fallbackModels = [
-        "openai/gpt-oss-120b",     
-        "meta-llama/llama-4-scout-17b-16e-instruct",     
-        "qwen/qwen3-32b",  
-        "openai/gpt-oss-20b"         
-      ]
+      const fallbackModels = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "openai/gpt-oss-safeguard-20b", "qwen/qwen3-32b", "meta-llama/llama-4-scout-17b-16e-instruct", "moonshotai/kimi-k2-instruct-0905"]
 
       // Try primary model first
       if (primaryModel && !fallbackModels.includes(primaryModel)) {
@@ -239,10 +232,8 @@ export async function POST(request: Request) {
 
       return groq(fallbackModels[0]) // Return first available model
     }
-
-    // Perform hybrid search and AI analysis
-
-    // Initialize data for caching (shared across the request)
+    console.log("[🤖 Model]:", getModelWithFallback(groqModel))
+    
     let cacheData = {
       sources: [] as any[],
       newsResults: [] as any[],
@@ -508,16 +499,19 @@ Source: ${image.source}`)
             if (messages.length > 1) {
               // Convert widget messages to UIMessage format for convertToModelMessages
               // Filter out messages without valid content to avoid Groq API validation errors
-              const uiMessages = messages.slice(0, -1)
+              const uiMessages = messages
+                .slice(0, -1)
                 .filter((msg: any) => msg.content && msg.content.trim().length > 0)
                 .map((msg: any, index: number) => ({
                   id: `msg-${index}`,
                   role: msg.role,
                   content: msg.content.trim(),
-                  parts: [{
-                    type: "text" as const,
-                    text: msg.content.trim()
-                  }],
+                  parts: [
+                    {
+                      type: "text" as const,
+                      text: msg.content.trim()
+                    }
+                  ],
                   createdAt: new Date()
                 }))
 
@@ -590,10 +584,10 @@ FORMAT:
           const result = streamText({
             model: getModelWithFallback(groqModel),
             messages: aiMessages,
-            temperature: 0.3, // Reduced from 0.7 for consistency
+            temperature: 0.7,
             maxRetries: 2
           })
-
+          console.log("🤖 Streaming result:", result)
           // Merge the AI stream into our UIMessage stream (starts immediately)
           writer.merge(result.toUIMessageStream())
 

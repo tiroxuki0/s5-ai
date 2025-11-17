@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useCallback } from "react"
+import React, { useMemo, useCallback, memo } from "react"
 import { Streamdown } from "streamdown"
 import { CitationTooltip } from "./citation-tooltip-portal"
 import { SearchResult } from "./types"
@@ -10,7 +10,7 @@ interface MarkdownRendererProps {
   sources?: SearchResult[]
 }
 
-export function MarkdownRenderer({ content, sources }: MarkdownRendererProps) {
+const MarkdownRenderer = memo(function MarkdownRenderer({ content, sources }: MarkdownRendererProps) {
   // Process content to convert citations to clickable elements
   const processedContent = useMemo(() => {
     return (
@@ -114,4 +114,6 @@ export function MarkdownRenderer({ content, sources }: MarkdownRendererProps) {
       {sources && sources.length > 0 && <CitationTooltip sources={sources} />}
     </>
   )
-}
+})
+
+export { MarkdownRenderer }

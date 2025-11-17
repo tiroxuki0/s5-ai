@@ -69,6 +69,20 @@ export class ConfluenceService {
     }
   }
 
+  /**
+   * Helper function to get model with fallback for rate limits
+   */
+  private getModelWithFallback(groqClient: any, primaryModel: string | undefined) {
+    const fallbackModels = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "openai/gpt-oss-safeguard-20b", "qwen/qwen3-32b", "meta-llama/llama-4-scout-17b-16e-instruct", "moonshotai/kimi-k2-instruct-0905"]
+
+    // Try primary model first
+    if (primaryModel && !fallbackModels.includes(primaryModel)) {
+      fallbackModels.unshift(primaryModel)
+    }
+
+    return groqClient(fallbackModels[0]) // Return first available model
+  }
+
   private getAuthHeader(): string {
     const credentials = Buffer.from(`${this.username}:${this.token}`).toString("base64")
     return `Basic ${credentials}`
@@ -82,7 +96,7 @@ export class ConfluenceService {
       console.log(`🧠 Expanding query semantically: "${query}"`)
 
       const expansion = await generateText({
-        model: groqClient("moonshotai/kimi-k2-instruct"),
+        model: this.getModelWithFallback(groqClient, process.env.GROQ_MODEL || ""),
         messages: [
           {
             role: "system",
@@ -146,7 +160,7 @@ Output: ["authentication setup", "auth configuration", "login setup", "user auth
 
       const searchResults = await Promise.allSettled(searchPromises)
       const allPages = new Map<string, ConfluencePage>()
-      console.log("searchResults", searchResults)
+
       searchResults.forEach((result) => {
         if (result.status === "fulfilled") {
           result.value.pages.forEach((page) => allPages.set(page.id, page))
@@ -176,7 +190,7 @@ Output: ["authentication setup", "auth configuration", "login setup", "user auth
       }))
 
       const semanticAnalysis = await generateText({
-        model: groqClient("moonshotai/kimi-k2-instruct"),
+        model: this.getModelWithFallback(groqClient, process.env.GROQ_MODEL || ""),
         messages: [
           {
             role: "system",
@@ -275,7 +289,7 @@ Documents to analyze:`
     if (combinedPages.length > finalLimit) {
       try {
         const finalRanking = await generateText({
-          model: groqClient("moonshotai/kimi-k2-instruct"),
+          model: this.getModelWithFallback(groqClient, process.env.GROQ_MODEL || ""),
           messages: [
             {
               role: "system",

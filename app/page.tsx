@@ -39,7 +39,6 @@ export default function Page() {
   const [, setIsCheckingEnv] = useState<boolean>(true)
   const [pendingQuery, setPendingQuery] = useState<string>("")
   const [input, setInput] = useState<string>("")
-  const [currentAiResponse, setCurrentAiResponse] = useState<string>("")
 
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
@@ -47,7 +46,7 @@ export default function Page() {
       body: braveApiKey ? { braveApiKey } : undefined
     })
   })
-
+  console.log('status',status)
   // Single consolidated effect for handling streaming data
   useEffect(() => {
     // Handle response start
@@ -63,7 +62,6 @@ export default function Page() {
         setImageResults([])
         setFollowUpQuestions([])
         setCurrentTicker(null)
-        setCurrentAiResponse("") // Clear AI response for new message
         currentMessageIndex.current = newIndex
         lastDataLength.current = 0 // Reset data tracking for new message
       }
@@ -130,7 +128,6 @@ export default function Page() {
       if (latestTicker !== null) setCurrentTicker(latestTicker)
       if (latestFollowUpQuestions.length > 0) setFollowUpQuestions(latestFollowUpQuestions)
       if (latestStatus !== null) setSearchStatus(latestStatus)
-      if (latestAiResponse !== null) setCurrentAiResponse(latestAiResponse)
 
       // Update message data map
       if (hasSourceData || latestTicker !== null || latestFollowUpQuestions.length > 0) {
@@ -301,7 +298,6 @@ export default function Page() {
               handleSubmit={handleChatSubmit}
               messageData={messageData}
               currentTicker={currentTicker}
-              currentAiResponse={currentAiResponse}
             />
           )}
         </div>
