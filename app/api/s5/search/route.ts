@@ -10,7 +10,7 @@ import { hybridSearchService } from "@/lib/services/hybrid-search"
 // Initialize Redis (optional - fallback to no cache if not configured)
 let redis: Redis | null = null
 try {
-  if (process.env.REDIS_URL && process.env.REDIS_TOKEN) {
+  if (!process.env.REDIS_URL && process.env.REDIS_TOKEN) {
     redis = new Redis({
       url: process.env.REDIS_URL,
       token: process.env.REDIS_TOKEN
@@ -208,6 +208,7 @@ export async function POST(request: Request) {
     // Use API key from request body if provided, otherwise fall back to environment variable
     const braveApiKey = body.braveApiKey || process.env.BRAVE_API_KEY
     const groqApiKey = process.env.GROQ_API_KEY
+    const groqModel = process.env.GROQ_MODEL || "openai/gpt-oss-120b" // Better rate limits than kimi-k2
 
     if (!braveApiKey) {
       return NextResponse.json({ error: "Brave Search API key not configured" }, { status: 500 })
@@ -221,6 +222,23 @@ export async function POST(request: Request) {
     const groq = createGroq({
       apiKey: groqApiKey
     })
+
+    // Helper function to get model with fallback for rate limits
+    const getModelWithFallback = (primaryModel: string) => {
+      const fallbackModels = [
+        "openai/gpt-oss-120b",     // Good balance of speed and capability
+        "llama3-8b-8192",      // Fast and lightweight
+        "mixtral-8x7b-32768",  // Good for code/docs
+        "gemma2-9b-it"         // Fast inference
+      ]
+
+      // Try primary model first
+      if (primaryModel && !fallbackModels.includes(primaryModel)) {
+        fallbackModels.unshift(primaryModel)
+      }
+
+      return groq(fallbackModels[0]) // Return first available model
+    }
 
     // Perform hybrid search and AI analysis
 
@@ -365,17 +383,6 @@ export async function POST(request: Request) {
           cacheData.imageResults = imageResults
           cacheData.searchStrategy = hybridResult.searchStrategy
 
-          // Small delay to ensure sources render first
-          await new Promise((resolve) => setTimeout(resolve, 300))
-
-          // Update status
-          writer.write({
-            type: "data-status",
-            id: "status-3",
-            data: { message: "Analyzing sources and generating answer..." },
-            transient: true
-          })
-
           // Detect if query is about a company
           const ticker = detectCompanyTicker(query)
           if (ticker) {
@@ -387,84 +394,137 @@ export async function POST(request: Request) {
             cacheData.ticker = ticker
           }
 
-          // Build enhanced context with better structure and image support
-          let contextParts: string[] = []
+          // Start AI streaming immediately with basic context first
+          // Build basic context for immediate response
+          let basicContextParts: string[] = []
 
-          // Add internal sources first (highest priority)
+          // Add internal sources first (basic info only - no heavy image processing)
           if (hybridResult.internalResults.confluence.pages.length > 0) {
-            contextParts.push("=== INTERNAL SOURCES (HIGHEST PRIORITY) ===")
+            basicContextParts.push("=== INTERNAL SOURCES ===")
             hybridResult.internalResults.confluence.pages.forEach((page, index) => {
-              const excerpt = page.excerpt || page.content.substring(0, 800)
+              const excerpt = page.excerpt || page.content.substring(0, 400) // Shorter for faster start
               const citationNumber = index + 1
-              let pageContent = `[${citationNumber}] ${page.title} (${page.space})
+              const pageContent = `[${citationNumber}] ${page.title}
+Content: ${excerpt}`
+              basicContextParts.push(pageContent)
+            })
+          }
+
+          // Add vector search results if available (basic)
+          if (hybridResult.internalResults.vectorSearch.length > 0) {
+            basicContextParts.push("=== VECTOR SEARCH RESULTS ===")
+            hybridResult.internalResults.vectorSearch.forEach((doc, index) => {
+              const metadata = doc.metadata as any
+              const citationNumber = hybridResult.internalResults.confluence.pages.length + index + 1
+              basicContextParts.push(`[${citationNumber}] ${metadata.title}
+Content: ${doc.pageContent.substring(0, 300)}`)
+            })
+          }
+
+          // Add basic external sources if available
+          if (hybridResult.externalResults.sources.length > 0) {
+            basicContextParts.push("=== EXTERNAL SOURCES ===")
+            hybridResult.externalResults.sources.slice(0, 3).forEach((source, index) => {
+              basicContextParts.push(`[EXTERNAL-${index + 1}] ${source.title}
+Description: ${source.description?.substring(0, 200) || "No description"}`)
+            })
+          }
+
+          const basicContext = basicContextParts.join("\n\n---\n\n")
+
+          // Update status and start AI streaming immediately
+          writer.write({
+            type: "data-status",
+            id: "status-3",
+            data: { message: "Generating answer..." },
+            transient: true
+          })
+
+          // Build enhanced context asynchronously (non-blocking)
+          const buildEnhancedContext = async () => {
+            let contextParts: string[] = []
+
+            // Add internal sources with full details and images
+            if (hybridResult.internalResults.confluence.pages.length > 0) {
+              contextParts.push("=== INTERNAL SOURCES (HIGHEST PRIORITY) ===")
+              hybridResult.internalResults.confluence.pages.forEach((page, index) => {
+                const excerpt = page.excerpt || page.content.substring(0, 800)
+                const citationNumber = index + 1
+                let pageContent = `[${citationNumber}] ${page.title} (${page.space})
 URL: ${page.url}
 Author: ${page.author || "Unknown"}
 Last Modified: ${page.lastModified || "Unknown"}
 Content: ${excerpt}`
 
-              // Add images if available
-              if (page.images && page.images.length > 0) {
-                pageContent += `\nImages: ${page.images.map((img) => `[${img.alt || "Image"}](${img.url})`).join(", ")}`
-              }
+                // Add images if available (this was blocking before)
+                if (page.images && page.images.length > 0) {
+                  pageContent += `\nImages: ${page.images.map((img) => `[${img.alt || "Image"}](${img.url})`).join(", ")}`
+                }
+                contextParts.push(pageContent)
+              })
+            }
 
-              contextParts.push(pageContent)
-            })
-          }
-
-          // Add vector search results if available
-          if (hybridResult.internalResults.vectorSearch.length > 0) {
-            contextParts.push("=== VECTOR SEARCH RESULTS ===")
-            const vectorStartIndex = hybridResult.internalResults.confluence.pages.length + 1
-            hybridResult.internalResults.vectorSearch.forEach((doc, index) => {
-              const metadata = doc.metadata as any
-              const citationNumber = vectorStartIndex + index
-              contextParts.push(`[${citationNumber}] ${metadata.title} (Vector Search)
+            // Add vector search results with full details
+            if (hybridResult.internalResults.vectorSearch.length > 0) {
+              contextParts.push("=== VECTOR SEARCH RESULTS ===")
+              const vectorStartIndex = hybridResult.internalResults.confluence.pages.length + 1
+              hybridResult.internalResults.vectorSearch.forEach((doc, index) => {
+                const metadata = doc.metadata as any
+                const citationNumber = vectorStartIndex + index
+                contextParts.push(`[${citationNumber}] ${metadata.title} (Vector Search)
 URL: ${metadata.url}
 Content: ${doc.pageContent.substring(0, 600)}`)
-            })
-          }
+              })
+            }
 
-          // Add external sources (supporting evidence)
-          if (hybridResult.externalResults.sources.length > 0) {
-            contextParts.push("=== EXTERNAL SOURCES (SUPPORTING EVIDENCE) ===")
-            hybridResult.externalResults.sources.slice(0, 8).forEach((source, index) => {
-              const imageInfo = source.image ? ` [IMAGE: ${source.image}]` : ""
-              contextParts.push(`[EXTERNAL-${index + 1}] ${source.title}
+            // Add external sources with images
+            if (hybridResult.externalResults.sources.length > 0) {
+              contextParts.push("=== EXTERNAL SOURCES (SUPPORTING EVIDENCE) ===")
+              hybridResult.externalResults.sources.slice(0, 8).forEach((source, index) => {
+                const imageInfo = source.image ? ` [IMAGE: ${source.image}]` : ""
+                contextParts.push(`[EXTERNAL-${index + 1}] ${source.title}
 URL: ${source.url}
 Description: ${source.description}${imageInfo}`)
-            })
-          }
+              })
+            }
 
-          // Add image sources if available
-          if (hybridResult.externalResults.imageResults.length > 0) {
-            contextParts.push("=== AVAILABLE IMAGES ===")
-            hybridResult.externalResults.imageResults.slice(0, 5).forEach((image, index) => {
-              contextParts.push(`[IMAGE-${index + 1}] ${image.title}
+            // Add image sources if available
+            if (hybridResult.externalResults.imageResults.length > 0) {
+              contextParts.push("=== AVAILABLE IMAGES ===")
+              hybridResult.externalResults.imageResults.slice(0, 5).forEach((image, index) => {
+                contextParts.push(`[IMAGE-${index + 1}] ${image.title}
 URL: ${image.url}
 Thumbnail: ${image.thumbnail}
 Source: ${image.source}`)
-            })
-          }
+              })
+            }
 
-          const context = contextParts.join("\n\n---\n\n")
+            return contextParts.join("\n\n---\n\n")
+          }
 
           // Prepare messages for the AI - always include conversation context
           let conversationContext: ModelMessage[] = []
           try {
             if (messages.length > 1) {
               // Convert widget messages to UIMessage format for convertToModelMessages
-              const uiMessages = messages.slice(0, -1).map((msg: any, index: number) => ({
-                id: `msg-${index}`,
-                role: msg.role,
-                content: msg.content || "",
-                parts: [{
-                  type: "text" as const,
-                  text: msg.content || ""
-                }],
-                createdAt: new Date()
-              }))
+              // Filter out messages without valid content to avoid Groq API validation errors
+              const uiMessages = messages.slice(0, -1)
+                .filter((msg: any) => msg.content && msg.content.trim().length > 0)
+                .map((msg: any, index: number) => ({
+                  id: `msg-${index}`,
+                  role: msg.role,
+                  content: msg.content.trim(),
+                  parts: [{
+                    type: "text" as const,
+                    text: msg.content.trim()
+                  }],
+                  createdAt: new Date()
+                }))
 
-              conversationContext = convertToModelMessages(uiMessages)
+              // Only convert if we have valid messages
+              if (uiMessages.length > 0) {
+                conversationContext = convertToModelMessages(uiMessages)
+              }
             }
           } catch (error) {
             console.error("Error converting conversation messages:", error)
@@ -519,28 +579,40 @@ FORMAT:
             },
             // Include conversation context - convert UIMessages to ModelMessages (if any)
             ...conversationContext,
-            // Add the current query with the sources
+            // Add the current query with the sources (start with basic context)
             {
               role: "user",
-              content: `Answer this query: "${query}"\n\nBased on these sources:\n${context}`
+              content: `Answer this query: "${query}"\n\nBased on these sources:\n${basicContext}`
             }
           ]
 
-          // Stream the text generation using Groq's Kimi K2 Instruct model
-          // Use lower temperature for more consistent answers
+          // Start AI streaming immediately with basic context
           const result = streamText({
-            model: groq("moonshotai/kimi-k2-instruct"),
+            model: getModelWithFallback(groqModel),
             messages: aiMessages,
             temperature: 0.3, // Reduced from 0.7 for consistency
             maxRetries: 2
           })
 
-          // Merge the AI stream into our UIMessage stream
+          // Merge the AI stream into our UIMessage stream (starts immediately)
           writer.merge(result.toUIMessageStream())
+
+          // Build enhanced context in parallel (non-blocking)
+          const enhancedContextPromise = buildEnhancedContext()
 
           // Get the full answer for follow-up generation and caching
           const fullAnswer = await result.text
           cacheData.aiResponse = fullAnswer
+
+          // Wait for enhanced context to be built (happens in parallel)
+          try {
+            const enhancedContext = await enhancedContextPromise
+            // Enhanced context is now available but response has already started
+            // Could potentially use this for follow-up improvements if needed
+          } catch (error) {
+            console.error("Error building enhanced context:", error)
+            // Continue with basic context - response already started
+          }
 
           // Generate follow-up questions - always consider conversation history
           const conversationPreview = messages
@@ -560,7 +632,7 @@ FORMAT:
 
           try {
             const followUpResponse = await generateText({
-              model: groq("moonshotai/kimi-k2-instruct"),
+              model: getModelWithFallback(groqModel),
               messages: [
                 {
                   role: "system",

@@ -35,6 +35,7 @@ Add your keys to `.env.local`:
 ```bash
 BRAVE_API_KEY=your-brave-search-api-key
 GROQ_API_KEY=gsk_your-groq-api-key
+GROQ_MODEL=openai/gpt-oss-120b  # Optional: Groq model (default: openai/gpt-oss-120b for better rate limits)
 ```
 
 ### Optional: RAG System (Vector Search)

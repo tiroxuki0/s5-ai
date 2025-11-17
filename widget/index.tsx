@@ -23,7 +23,7 @@ declare global {
 
 // Initialize the widget
 function initWidget(container: HTMLElement, options: WidgetOptions) {
-  console.log("S5 Assistant Chat Widget: React initWidget called with container:", container, "and options:", options)
+  console.log("S5 Assistant Chat Widget: React initWidget called with options:", options)
 
   try {
     const root = createRoot(container)
