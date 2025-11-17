@@ -66,6 +66,16 @@ ENABLE_EXTERNAL_SEARCH=true
 ENABLE_AI_SEARCH=true
 ```
 
+### Maintenance Mode
+
+```bash
+# Temporarily shut down the site for maintenance
+# When set to "true", users will see a maintenance page
+MAINTENANCE_MODE=false
+```
+
+To temporarily disable the site, set `MAINTENANCE_MODE=true` in your environment variables. Users will be redirected to a maintenance page instead of the main application.
+
 ### Optional: Redis Caching
 
 ```bash
