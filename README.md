@@ -74,7 +74,9 @@ ENABLE_AI_SEARCH=true
 MAINTENANCE_MODE=false
 ```
 
-To temporarily disable the site, set `MAINTENANCE_MODE=true` in your environment variables. Users will be redirected to a maintenance page instead of the main application.
+To temporarily disable the site, set `MAINTENANCE_MODE=true` in your environment variables. The middleware will automatically redirect all users to a maintenance page instead of the main application.
+
+**Note:** API routes and admin pages remain accessible during maintenance mode for backend operations.
 
 ### Optional: Redis Caching
 

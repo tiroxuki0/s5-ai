@@ -1,6 +1,6 @@
 export default function MaintenancePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-900 dark:to-zinc-800">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 dark:from-zinc-900 dark:to-zinc-800">
       <div className="max-w-md mx-auto text-center px-6">
         {/* Maintenance Icon */}
         <div className="mb-8">
@@ -47,10 +47,10 @@ export default function MaintenancePage() {
             Need immediate assistance? Contact our support team.
           </p>
           <a
-            href="mailto:support@s5assistant.com"
+            href="mailto:support@gmail.com"
             className="inline-block mt-2 text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 font-medium"
           >
-            support@s5assistant.com
+            support@gmail.com
           </a>
         </div>
 
