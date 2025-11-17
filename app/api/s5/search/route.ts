@@ -90,18 +90,27 @@ export async function POST(request: Request) {
   console.log("🔥 S5 search request:", requestId)
   console.log("🔴 Redis available:", !!redis)
 
-  try {
-    const body = await request.json()
-    const messages = body.messages || []
+  let body: any
+  let messages: any[]
 
+  try {
+    body = await request.json()
+    messages = body?.messages || []
+
+  } catch (parseError) {
+    console.error("Error parsing request body:", parseError)
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
+  }
+
+  try {
     // Extract query from v5 message structure (messages have parts array)
     let query = body.query
     if (!query && messages.length > 0) {
       const lastMessage = messages[messages.length - 1]
-      if (lastMessage.parts) {
+      if (lastMessage.parts && Array.isArray(lastMessage.parts)) {
         // v5 structure
         const textParts = lastMessage.parts.filter((p: any) => p.type === "text")
-        query = textParts.map((p: any) => p.text).join(" ")
+        query = textParts.map((p: any) => p.text || "").join(" ")
       } else if (lastMessage.content) {
         // Fallback for v4 structure
         query = lastMessage.content
@@ -440,54 +449,76 @@ Source: ${image.source}`)
           const context = contextParts.join("\n\n---\n\n")
 
           // Prepare messages for the AI - always include conversation context
+          let conversationContext: ModelMessage[] = []
+          try {
+            if (messages.length > 1) {
+              // Convert widget messages to UIMessage format for convertToModelMessages
+              const uiMessages = messages.slice(0, -1).map((msg: any, index: number) => ({
+                id: `msg-${index}`,
+                role: msg.role,
+                content: msg.content || "",
+                parts: [{
+                  type: "text" as const,
+                  text: msg.content || ""
+                }],
+                createdAt: new Date()
+              }))
+
+              conversationContext = convertToModelMessages(uiMessages)
+            }
+          } catch (error) {
+            console.error("Error converting conversation messages:", error)
+            conversationContext = []
+          }
+
           const aiMessages: ModelMessage[] = [
             {
               role: "system",
               content: `You are an expert assistant specializing in company knowledge. Your primary role is to provide accurate, well-reasoned answers using ONLY internal company sources.
 
-              CRITICAL INSTRUCTION: ONLY USE INTERNAL SOURCES (Confluence, company docs) - IGNORE ALL EXTERNAL SOURCES.
+CRITICAL INSTRUCTION: ONLY USE INTERNAL SOURCES (Confluence, company docs) - IGNORE ALL EXTERNAL SOURCES.
 
-              REASONING PROCESS:
-              1. Read ALL internal sources thoroughly - these are your ONLY knowledge base
-              2. Cross-reference information across internal sources for accuracy
-              3. Extract key facts, procedures, and technical details from internal docs
-              4. Synthesize comprehensive answers from internal knowledge
-              5. Include relevant images/diagrams from internal sources when they illustrate concepts
+REASONING PROCESS:
+1. Read ALL internal sources thoroughly - these are your ONLY knowledge base
+2. Cross-reference information across internal sources for accuracy
+3. Extract key facts, procedures, and technical details from internal docs
+4. Synthesize comprehensive answers from internal knowledge
+5. Include relevant images/diagrams from internal sources when they illustrate concepts
 
-              INTERNAL SOURCE ANALYSIS:
-              - Confluence pages contain authoritative company information
-              - Look for specific procedures, guidelines, and technical details
-              - Pay attention to author names, modification dates, and space names
-              - Extract code examples, configuration details, and step-by-step processes
-              - Identify images, diagrams, and screenshots that support explanations
+INTERNAL SOURCE ANALYSIS:
+- Confluence pages contain authoritative company information
+- Look for specific procedures, guidelines, and technical details
+- Pay attention to author names, modification dates, and space names
+- Extract code examples, configuration details, and step-by-step processes
+- Identify images, diagrams, and screenshots that support explanations
 
-              IMAGE INTEGRATION:
-              - When internal sources contain images, reference them in your response
-              - Use format: ![Image description](image_url)
-              - Explain what the image shows and how it relates to the answer
-              - Prefer recent, relevant images over outdated ones
+IMAGE INTEGRATION:
+- When internal sources contain images, reference them in your response
+- Use format: ![Image description](image_url)
+- Explain what the image shows and how it relates to the answer
+- Prefer recent, relevant images over outdated ones
 
-              ACCURACY REQUIREMENTS:
-              - Base ALL answers on internal source content only
-              - Never extrapolate beyond what's explicitly stated in internal docs
-              - Cite specific internal sources for all claims [1], [2], etc. (clickable links)
-              - If internal sources don't cover the topic, clearly state this limitation
-              - Prefer the most recent and authoritative internal sources
+ACCURACY REQUIREMENTS:
+- Base ALL answers on internal source content only
+- Never extrapolate beyond what's explicitly stated in internal docs
+- Cite specific internal sources for all claims [1], [2], etc. (clickable links)
+- If internal sources don't cover the topic, clearly state this limitation
+- Prefer the most recent and authoritative internal sources
 
-              RESPONSE STRUCTURE:
-              - Start directly with the answer (no introductory phrases about sources)
-              - Provide detailed reasoning citing internal sources
-              - Include relevant images from internal sources
-              - End with specific references to internal documentation
+RESPONSE STRUCTURE:
+- Start directly with the answer (no introductory phrases about sources)
+- Provide detailed reasoning citing internal sources
+- Include relevant images from internal sources
+- End with specific references to internal documentation
 
-              FORMAT:
-              - Use markdown for readability
-              - Citations: [1](url), [2](url), etc. as clickable markdown links
-              - Images: ![Description](url) when available from internal sources
-              - Be comprehensive but focused on internal company knowledge`
+FORMAT:
+- Use markdown for readability
+- Citations: Use [1], [2], [3], etc. to reference sources (numbers only, no URLs in text)
+- Images: ![Description](url) when available from internal sources
+- Be comprehensive but focused on internal company knowledge`
             },
             // Include conversation context - convert UIMessages to ModelMessages (if any)
-            ...(messages.length > 1 ? convertToModelMessages(messages.slice(0, -1)) : []),
+            ...conversationContext,
             // Add the current query with the sources
             {
               role: "user",
@@ -513,13 +544,16 @@ Source: ${image.source}`)
 
           // Generate follow-up questions - always consider conversation history
           const conversationPreview = messages
-            .map((m: { role: string; parts?: any[] }) => {
-              const content = m.parts
-                ? m.parts
-                    .filter((p: any) => p.type === "text")
-                    .map((p: any) => p.text)
-                    .join(" ")
-                : ""
+            .map((m: { role: string; parts?: any[]; content?: string }) => {
+              let content = ""
+              if (m.parts && Array.isArray(m.parts)) {
+                // v5 structure with parts
+                const textParts = m.parts.filter((p: any) => p.type === "text")
+                content = textParts.map((p: any) => p.text || "").join(" ")
+              } else if (m.content) {
+                // v4 structure or widget format with content
+                content = m.content
+              }
               return `${m.role}: ${content}`
             })
             .join("\n\n")

@@ -26,8 +26,15 @@ interface MessageData {
 function getMessageContent(message: UIMessage): string {
   if (!message.parts) return ""
   return message.parts
-    .filter((part: any) => part.type === "text")
-    .map((part: any) => part.text)
+    .filter((part: any) => part.type === "text" || part.type === "data-ai-response")
+    .map((part: any) => {
+      if (part.type === "text") {
+        return part.text
+      } else if (part.type === "data-ai-response" && part.data?.content) {
+        return part.data.content
+      }
+      return ""
+    })
     .join("")
 }
 
@@ -146,7 +153,7 @@ export function ChatInterface({
       }, 100)
     }
   }
-
+  console.log("messages", messages)
   return (
     <div className="flex h-full relative" style={{ height: "calc(100vh - 80px)" }}>
       {/* Main content area */}
@@ -186,7 +193,7 @@ export function ChatInterface({
                   const messageSources = storedData?.sources || []
                   const messageFollowUpQuestions = storedData?.followUpQuestions || []
                   const messageTicker = storedData?.ticker || null
-
+                  console.log("pair", pair)
                   return (
                     <div key={pairIndex} className="space-y-6">
                       {/* User message */}
@@ -307,6 +314,7 @@ export function ChatInterface({
                               </div>
                             </div>
                             <div className="prose prose-gray max-w-none dark:prose-invert prose-sm sm:prose-base break-words overflow-hidden">
+                             
                               <MarkdownRenderer content={pair.assistant ? getMessageContent(pair.assistant) : ""} sources={messageSources} />
                             </div>
                           </div>

@@ -424,7 +424,8 @@ function ChatWidgetInternal({ apiUrl = "/api/widget/chat", apiKey, theme = "auto
     }
 
     // Update state synchronously
-    setMessages((prev) => [...prev, userMessage])
+    const updatedMessages = [...messages, userMessage]
+    setMessages(updatedMessages)
     setInput("")
     setIsLoading(true)
     setSearchStatus("Thinking...")
@@ -436,7 +437,7 @@ function ChatWidgetInternal({ apiUrl = "/api/widget/chat", apiKey, theme = "auto
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((m) => ({
+          messages: updatedMessages.map((m) => ({
             role: m.role,
             content: m.content
           })),
@@ -644,7 +645,7 @@ function ChatWidgetInternal({ apiUrl = "/api/widget/chat", apiKey, theme = "auto
                       <>
                         <WidgetMarkdown content={pair.assistant.content} sources={pair.assistant.metadata?.sources} apiUrl={apiUrl} />
                         {pair.assistant.metadata?.sources?.length ? (
-                          <div className="s5-widget-section">
+                          <div className="s5-widget-section inner">
                             <div className="s5-widget-section-header">
                               <FileTextIcon />
                               <span>Sources</span>
@@ -661,7 +662,7 @@ function ChatWidgetInternal({ apiUrl = "/api/widget/chat", apiKey, theme = "auto
                                   <div className="s5-widget-source-meta">
                                     <span>{getDomainFromUrl(source.url, source.siteName)}</span>
                                   </div>
-                                  <p>{source.title}</p>
+                                  <p className='s5-widget-source-meta-title'>{source.title}</p>
                                 </a>
                               ))}
                             </div>
@@ -722,7 +723,7 @@ function ChatWidgetInternal({ apiUrl = "/api/widget/chat", apiKey, theme = "auto
                       <span>Images</span>
                     </div>
                     <div className="s5-widget-images-grid">
-                      {currentImages.map((image, index) => (
+                      {currentImages?.slice(0, 10).map((image, index) => (
                         <a
                           key={`${image.url}-${index}`}
                           href={image.url}

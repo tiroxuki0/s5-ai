@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { messages, braveApiKey } = body
 
+
     // Forward the request to the actual S5 search API
     const apiUrl = new URL("/api/s5/search", request.nextUrl.origin)
 
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
         braveApiKey
       })
     })
+
 
     // Handle streaming response from s5/search API
     const reader = response.body?.getReader()
@@ -43,13 +45,21 @@ export async function POST(request: NextRequest) {
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6))
+            const dataStr = line.slice(6).trim()
 
+            // Skip special messages like [DONE]
+            if (dataStr === "[DONE]" || dataStr === "") {
+              continue
+            }
+
+            try {
+              const data = JSON.parse(dataStr)
               if (data.type === "data-ai-response" && data.data?.content) {
                 aiResponse = data.data.content
-              } else if (data.type === "text" && (data.content || data.data?.content)) {
-                aiResponse = (aiResponse || "") + (data.content || data.data?.content || "")
+              } else if (data.type === "text" && data.text) {
+                aiResponse = (aiResponse || "") + data.text
+              } else if (data.type === "text-delta" && data.delta) {
+                aiResponse = (aiResponse || "") + data.delta
               } else if (data.type === "data-sources" && data.data) {
                 if (Array.isArray(data.data.sources)) {
                   sources = data.data.sources
@@ -74,6 +84,11 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    }
+
+    // Always clear status when streaming is complete (widget accumulates all data)
+    if (aiResponse) {
+      statusMessage = ""
     }
 
     const data = {

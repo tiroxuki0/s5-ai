@@ -116,8 +116,8 @@ export default function Page() {
         }
 
         // Handle regular text parts (for streaming AI responses)
-        if (part.type === "text" && part.content) {
-          latestAiResponse = (latestAiResponse || "") + part.content
+        if (part.type === "text" && part.text) {
+          latestAiResponse = (latestAiResponse || "") + part.text
         }
       })
 

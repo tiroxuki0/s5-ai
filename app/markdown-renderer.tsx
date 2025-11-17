@@ -96,7 +96,7 @@ export function MarkdownRenderer({ content, sources }: MarkdownRendererProps) {
               target.style.display = "none"
             }}
             onLoad={() => {
-              console.log("Image loaded successfully:", processedSrc)
+              // Image loaded successfully
             }}
             {...props}
           />
