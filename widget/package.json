@@ -1,7 +1,7 @@
 {
   "name": "s5-chat-widget",
   "version": "1.0.0",
-  "description": "S5.AI Chat Widget for embedding on external websites",
+  "description": "S5 Assistant Chat Widget for embedding on external websites",
   "main": "dist/widget.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",

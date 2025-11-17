@@ -205,45 +205,9 @@ export function ChatInterface({
                                   <FileText className="h-4 w-4 text-black dark:text-white" />
                                   <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">Sources</h2>
                                 </div>
-                                {messageSources.length > 5 && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">+{messageSources.length - 5} more</span>
-                                    <div className="flex -space-x-2">
-                                      {messageSources.slice(5, 10).map((result, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="w-5 h-5 bg-white dark:bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600"
-                                        >
-                                          {result.favicon ? (
-                                            <Image
-                                              src={result.favicon}
-                                              alt=""
-                                              width={16}
-                                              height={16}
-                                              className="w-4 h-4 object-contain"
-                                              onError={(e) => {
-                                                const target = e.target as HTMLImageElement
-                                                target.style.display = "none"
-                                              }}
-                                            />
-                                          ) : (
-                                            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                                              />
-                                            </svg>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
                               </div>
-                              <div className="grid grid-cols-5 gap-2">
-                                {messageSources.slice(0, 5).map((result, idx) => (
+                              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                                {messageSources.map((result, idx) => (
                                   <a
                                     key={idx}
                                     href={result.url}
@@ -407,42 +371,9 @@ export function ChatInterface({
                         <FileText className="h-4 w-4 text-black dark:text-white" />
                         <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">Sources</h2>
                       </div>
-                      {sources.length > 5 && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">+{sources.length - 5} more</span>
-                          <div className="flex -space-x-2">
-                            {sources.slice(5, 10).map((result, index) => (
-                              <div key={index} className="w-5 h-5 bg-white dark:bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
-                                {result.favicon ? (
-                                  <Image
-                                    src={result.favicon}
-                                    alt=""
-                                    width={16}
-                                    height={16}
-                                    className="w-4 h-4 object-contain"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement
-                                      target.style.display = "none"
-                                    }}
-                                  />
-                                ) : (
-                                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                                    />
-                                  </svg>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
-                    <div className="grid grid-cols-5 gap-2">
-                      {sources.slice(0, 5).map((result, index) => (
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                      {sources.map((result, index) => (
                         <a
                           key={index}
                           href={result.url}

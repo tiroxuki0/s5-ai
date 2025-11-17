@@ -23,11 +23,11 @@ declare global {
 
 // Initialize the widget
 function initWidget(container: HTMLElement, options: WidgetOptions) {
-  console.log("S5.AI Chat Widget: React initWidget called with container:", container, "and options:", options)
+  console.log("S5 Assistant Chat Widget: React initWidget called with container:", container, "and options:", options)
 
   try {
     const root = createRoot(container)
-    console.log("S5.AI Chat Widget: React root created")
+    console.log("S5 Assistant Chat Widget: React root created")
 
     root.render(
       <React.StrictMode>
@@ -40,9 +40,9 @@ function initWidget(container: HTMLElement, options: WidgetOptions) {
         />
       </React.StrictMode>
     )
-    console.log("S5.AI Chat Widget: React render called successfully")
+    console.log("S5 Assistant Chat Widget: React render called successfully")
   } catch (error) {
-    console.error("S5.AI Chat Widget: Error during React initialization:", error)
+    console.error("S5 Assistant Chat Widget: Error during React initialization:", error)
   }
 }
 
@@ -51,9 +51,9 @@ export default initWidget
 
 // Also expose it globally for the embed script
 if (typeof window !== "undefined") {
-  console.log("S5.AI Chat Widget: Setting window.S5ChatWidget =", initWidget)
+  console.log("S5 Assistant Chat Widget: Setting window.S5ChatWidget =", initWidget)
   window.S5ChatWidget = {
     init: initWidget
   }
-  console.log("S5.AI Chat Widget: window.S5ChatWidget is now set to", window.S5ChatWidget)
+  console.log("S5 Assistant Chat Widget: window.S5ChatWidget is now set to", window.S5ChatWidget)
 }

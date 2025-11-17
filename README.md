@@ -1,4 +1,4 @@
-# S5.AI - Hybrid Search Engine
+# S5 Assistant - Hybrid Search Engine
 
 AI-powered search engine combining **internal company documentation** (Confluence) with **external web search** (Brave Search) using **RAG technology** for intelligent document retrieval and generation.
 

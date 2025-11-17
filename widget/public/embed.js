@@ -1,8 +1,8 @@
 /**
- * S5.AI Chat Widget Embed Script
+ * S5 Assistant Chat Widget Embed Script
  * Version: 1.0.0
  *
- * This script loads and initializes the S5.AI chat widget on any website.
+ * This script loads and initializes the S5 Assistant chat widget on any website.
  * It handles cross-origin communication and provides a seamless chat experience.
  */
 
@@ -76,7 +76,7 @@
 
     // Check if widget is already initialized
     if (document.getElementById("s5-chat-widget-container")) {
-      console.warn("S5.AI Chat Widget is already initialized")
+      console.warn("S5 Assistant Chat Widget is already initialized")
       return
     }
 
@@ -97,7 +97,7 @@
             if (window.S5ChatWidget && window.S5ChatWidget.init) {
               window.S5ChatWidget.init(container, options)
             } else {
-              console.error("S5.AI Chat Widget failed to load properly")
+              console.error("S5 Assistant Chat Widget failed to load properly")
             }
           })
         })
@@ -116,7 +116,7 @@
   window.S5ChatWidget = window.S5ChatWidget || {
     init: function (container, options) {
       // This will be overridden by the actual widget code
-      console.log("S5.AI Chat Widget initializing with options:", options)
+      console.log("S5 Assistant Chat Widget initializing with options:", options)
     }
   }
 })()

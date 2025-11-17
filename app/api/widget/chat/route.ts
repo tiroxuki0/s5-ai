@@ -25,7 +25,11 @@ export async function POST(request: NextRequest) {
     const decoder = new TextDecoder()
     let aiResponse = ""
     let sources: any[] = []
+    let imageResults: any[] = []
+    let newsResults: any[] = []
     let followUpQuestions: string[] = []
+    let ticker: string | null = null
+    let statusMessage = ""
 
     if (reader) {
       let buffer = ""
@@ -41,15 +45,31 @@ export async function POST(request: NextRequest) {
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6))
+
               if (data.type === "data-ai-response" && data.data?.content) {
                 aiResponse = data.data.content
-              } else if (data.type === "data-sources" && data.data?.sources) {
-                sources = data.data.sources
+              } else if (data.type === "text" && (data.content || data.data?.content)) {
+                aiResponse = (aiResponse || "") + (data.content || data.data?.content || "")
+              } else if (data.type === "data-sources" && data.data) {
+                if (Array.isArray(data.data.sources)) {
+                  sources = data.data.sources
+                }
+                if (Array.isArray(data.data.imageResults)) {
+                  imageResults = data.data.imageResults
+                } else {
+                }
+                if (Array.isArray(data.data.newsResults)) {
+                  newsResults = data.data.newsResults
+                }
               } else if (data.type === "data-followup" && data.data?.questions) {
                 followUpQuestions = data.data.questions
+                } else if (data.type === "data-ticker" && (data.data?.symbol || data.data?.ticker)) {
+                ticker = data.data.symbol || data.data.ticker
+              } else if (data.type === "data-status" && data.data?.message) {
+                statusMessage = data.data.message
               }
             } catch (e) {
-              // Ignore parse errors for now
+              console.log("Widget API parse error:", e, "for line:", line)
             }
           }
         }
@@ -59,7 +79,11 @@ export async function POST(request: NextRequest) {
     const data = {
       content: aiResponse,
       sources,
-      followUpQuestions
+      imageResults,
+      newsResults,
+      followUpQuestions,
+      ticker,
+      status: statusMessage
     }
 
     // Return with CORS headers

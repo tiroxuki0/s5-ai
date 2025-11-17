@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Build S5.AI Chat Widget
-echo "Building S5.AI Chat Widget..."
+# Build S5 Assistant Chat Widget
+echo "Building S5 Assistant Chat Widget..."
 
 # Go to widget directory
 cd widget

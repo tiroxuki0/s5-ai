@@ -1,6 +1,6 @@
-# 🚀 S5.AI Chat Widget Setup Guide
+# 🚀 S5 Assistant Chat Widget Setup Guide
 
-Hướng dẫn đầy đủ để phát triển và deploy S5.AI Chat Widget - một plugin chat AI có thể nhúng vào bất kỳ website nào.
+Hướng dẫn đầy đủ để phát triển và deploy S5 Assistant Chat Widget - một plugin chat AI có thể nhúng vào bất kỳ website nào.
 
 ## 📋 Tổng quan
 
@@ -57,7 +57,7 @@ npm run dev
   <body>
     <!-- Nội dung website của bạn -->
 
-    <!-- S5.AI Chat Widget -->
+    <!-- S5 Assistant Chat Widget -->
     <script src="https://your-domain.com/embed.js"></script>
   </body>
 </html>

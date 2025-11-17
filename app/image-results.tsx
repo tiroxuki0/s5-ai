@@ -44,7 +44,7 @@ export function ImageResults({ results, isLoading }: ImageResultsProps) {
       </h3>
       {/* Mobile: Horizontal scroll, Desktop: Grid */}
       <div className="flex sm:grid sm:grid-cols-2 md:grid-cols-3 overflow-x-auto gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-        {results.slice(0, 6).map((result, index) => (
+        {results.map((result, index) => (
           <div
             key={index}
             className="group block flex-shrink-0 w-[200px] sm:w-auto cursor-pointer"

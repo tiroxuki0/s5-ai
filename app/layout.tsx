@@ -3,7 +3,7 @@ import "./globals.css"
 import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
-  title: "S5.AI - AI-Powered Search",
+  title: "S5 Assistant - AI-Powered Search",
   description: "Advanced search with AI-powered documentation and real-time information"
 }
 

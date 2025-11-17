@@ -1,4 +1,4 @@
-# S5.AI Chat Widget
+# S5 Assistant Chat Widget
 
 Plugin chat AI nhúng có thể tích hợp vào bất kỳ website nào với một icon chat nổi ở góc dưới phải.
 

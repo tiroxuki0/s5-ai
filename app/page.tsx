@@ -256,7 +256,7 @@ export default function Page() {
       <header className="px-4 sm:px-6 lg:px-8 py-1 mt-2">
         <div className="max-w-[1216px] mx-auto flex items-center justify-between">
           {/* <Link
-            href="https://s5.ai"
+            href="https://S5 Assistant"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center"
@@ -276,7 +276,7 @@ export default function Page() {
       <div className={`px-4 sm:px-6 lg:px-8 pt-16 pb-8 ${isChatActive ? "hidden" : "block"}`}>
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-[3rem] lg:text-[4rem] font-medium tracking-tight leading-tight">
-            <span className="text-[#ff4d00] block">S5.AI</span>
+            <span className="text-[#ff4d00] block">S5 Assistant</span>
             <span className="text-[#262626] dark:text-white block text-[3rem] lg:text-[4rem] font-medium -mt-2">AI Search Engine</span>
           </h1>
         </div>
@@ -313,7 +313,7 @@ export default function Page() {
           <DialogHeader>
             <DialogTitle>Brave Search API Key Required</DialogTitle>
             <DialogDescription>
-              To use S5.AI search, you need a Brave Search API key. Get one at{" "}
+              To use S5 Assistant search, you need a Brave Search API key. Get one at{" "}
               <a href="https://brave.com/search/api/" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 underline">
                 brave.com/search/api
               </a>
