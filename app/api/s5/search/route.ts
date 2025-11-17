@@ -226,10 +226,10 @@ export async function POST(request: Request) {
     // Helper function to get model with fallback for rate limits
     const getModelWithFallback = (primaryModel: string) => {
       const fallbackModels = [
-        "openai/gpt-oss-120b",     // Good balance of speed and capability
-        "llama3-8b-8192",      // Fast and lightweight
-        "mixtral-8x7b-32768",  // Good for code/docs
-        "gemma2-9b-it"         // Fast inference
+        "openai/gpt-oss-120b",     
+        "meta-llama/llama-4-scout-17b-16e-instruct",     
+        "qwen/qwen3-32b",  
+        "openai/gpt-oss-20b"         
       ]
 
       // Try primary model first
