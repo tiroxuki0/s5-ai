@@ -153,7 +153,7 @@ export function ChatInterface({
       }, 100)
     }
   }
-  console.log("messages", messages)
+
   return (
     <div className="flex h-full relative" style={{ height: "calc(100vh - 80px)" }}>
       {/* Main content area */}
@@ -193,7 +193,7 @@ export function ChatInterface({
                   const messageSources = storedData?.sources || []
                   const messageFollowUpQuestions = storedData?.followUpQuestions || []
                   const messageTicker = storedData?.ticker || null
-                  console.log("pair", pair)
+
                   return (
                     <div key={pairIndex} className="space-y-6">
                       {/* User message */}
