@@ -33,14 +33,6 @@ export default function MaintenancePage() {
           The site will be back online shortly.
         </p>
 
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="bg-gray-200 dark:bg-zinc-700 rounded-full h-2">
-            <div className="bg-orange-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Estimated completion: ~15 minutes</p>
-        </div>
-
         {/* Contact Info */}
         <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-zinc-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">
